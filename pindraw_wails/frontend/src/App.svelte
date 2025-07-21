@@ -1,17 +1,52 @@
 <script lang="ts">
   import {onMount} from 'svelte';
+  import {writable} from 'svelte/store';
   import hotkeys from './hotkeys.js';
   import logo from './assets/images/logo-universal.png'
   import Canvas from './Canvas/Canvas.svelte'
-  import {Greet} from '../wailsjs/go/main/App.js'
-  import {LogPrint} from '../wailsjs/runtime/runtime'
+  import {Changed, Greet, Save} from '../wailsjs/go/main/App.js'
+  import {EventsOn, LogPrint} from '../wailsjs/runtime/runtime'
   import Toolbox from "./Toolbox/Toolbox.svelte";
+  import {main} from "../wailsjs/go/models";
 
   LogPrint("Loading App.svelte")
+
+  let world: main.World|null|undefined = undefined
+  let worldWritable = writable<main.World|null|undefined>(world)
+
   onMount(() => {
-    const unsubscribe = hotkeys.listen()
+    const unsubLoad = EventsOn(main.EventType.load, (data) => {
+      LogPrint(`load ${JSON.stringify(data)}`)
+      if (data) {
+        const w = new main.World(data)
+        worldWritable.set(w)
+        world = w
+      }
+    })
+    const unsubSave = EventsOn(main.EventType.save, () => {
+      LogPrint(`save`)
+      if (world) {
+        Save(world, false)
+      }
+    })
+    const unsubSaveAs = EventsOn(main.EventType.saveAs, () => {
+      LogPrint(`save as`)
+      if (world) {
+        Save(world, true)
+      }
+    })
+    const unsubWorld = worldWritable.subscribe((w:main.World|null|undefined) => {
+      LogPrint(`world changed`)
+      Changed(w!)
+    })
+
+    const hotKeysUnsubscribe = hotkeys.listen()
     return () => {
-      unsubscribe()
+      unsubLoad()
+      unsubSave()
+      unsubSaveAs()
+      unsubWorld()
+      hotKeysUnsubscribe()
     }
   })
 
@@ -25,7 +60,8 @@
 <main>
   <Toolbox/>
   <img alt="Wails logo" id="logo" src="{logo}">
-  <div class="result" id="result">{resultText}</div>
+  <div class="result">{world?.id}</div>
+  <div class="result">{world?.label}</div>
   <div class="input-box" id="input">
     <input autocomplete="off" bind:value={name} class="input" id="name" type="text"/>
     <button class="btn" onclick={greet}>Greet</button>

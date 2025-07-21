@@ -1,5 +1,7 @@
 package main
 
+import "github.com/google/uuid"
+
 type Point struct {
 	X float32 `json:"x"`
 	Y float32 `json:"y"`
@@ -71,6 +73,18 @@ const (
 	EntityTypeObject    EntityType = "object"
 )
 
+var AllEntityTypes = []struct {
+	Value  EntityType
+	TSName string
+}{
+	{EntityTypeSegment, "segment"},
+	{EntityTypeLine, "line"},
+	{EntityTypeCurve, "curve"},
+	{EntityTypeCircle, "circle"},
+	{EntityTypeRectangle, "rectangle"},
+	{EntityTypeObject, "object"},
+}
+
 type FieldType string
 
 const (
@@ -80,6 +94,17 @@ const (
 	FieldTypeBool   FieldType = "bool"
 	FieldTypeId     FieldType = "id"
 )
+
+var AllFieldTypes = []struct {
+	Value  FieldType
+	TSName string
+}{
+	{FieldTypeString, "string"},
+	{FieldTypeFloat, "float"},
+	{FieldTypeInt, "int"},
+	{FieldTypeBool, "bool"},
+	{FieldTypeId, "id"},
+}
 
 type SelectOption struct {
 	Id    string `json:"id"`
@@ -157,4 +182,35 @@ type World struct {
 	Flags             []Flag             `json:"flags"`
 	ObjectDefinitions []ObjectDefinition `json:"objectDefinitions"`
 	Levels            []Level            `json:"levels"`
+}
+
+func DefaultWorld() *World {
+	return &World{
+		Id:    uuid.NewString(),
+		Label: "My World",
+		Levels: []Level{{
+			Id:    uuid.NewString(),
+			Label: "Level1",
+			AABB:  AABB{Position: Point{0, 0}, Size: Size{800, 600}},
+		}},
+	}
+}
+
+type EventType string
+
+const (
+	EventTypeLoad   EventType = "load"
+	EventTypeError  EventType = "error"
+	EventTypeSave   EventType = "save"
+	EventTypeSaveAs EventType = "saveAs"
+)
+
+var AllEventTypes = []struct {
+	Value  EventType
+	TSName string
+}{
+	{EventTypeLoad, "load"},
+	{EventTypeError, "error"},
+	{EventTypeSave, "save"},
+	{EventTypeSaveAs, "saveAs"},
 }

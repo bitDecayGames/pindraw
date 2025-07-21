@@ -30,7 +30,7 @@
         label: "Circle",
         mode: "circle",
         icon: "material-symbols:circle-outline",
-        hotkey: "Ctrl+O"
+        hotkey: "Ctrl+0"
     }, {
         label: "Entity",
         mode: "entity",
